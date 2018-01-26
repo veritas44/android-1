@@ -1277,6 +1277,17 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
         RecyclerView.LayoutManager layoutManager;
         if (grid) {
             layoutManager = new GridLayoutManager(getContext(), 3);
+            ((GridLayoutManager) layoutManager).setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    if (position == getAdapter().getItemCount() - 1) {
+                        return ((GridLayoutManager) layoutManager).getSpanCount();
+                    } else {
+                        return 1;
+                    }
+                }
+            });
+            
         } else {
             layoutManager = new LinearLayoutManager(getContext());
         }
@@ -1284,6 +1295,7 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
         getRecyclerView().setLayoutManager(layoutManager);
         getRecyclerView().scrollToPosition(position);
         getAdapter().setGridView(grid);
+        getRecyclerView().setAdapter(getAdapter());
         getAdapter().notifyDataSetChanged();
     }
 
