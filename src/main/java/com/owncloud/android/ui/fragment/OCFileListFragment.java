@@ -45,7 +45,6 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -54,7 +53,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -320,11 +318,13 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
             mFile = savedInstanceState.getParcelable(KEY_FILE);
         }
 
-        if (mJustFolders) {
-            setFooterEnabled(false);
-        } else {
-            setFooterEnabled(true);
-        }
+
+        // todo recycler
+//        if (mJustFolders) {
+//            setFooterEnabled(false);
+//        } else {
+//            setFooterEnabled(true);
+//        }
 
         Bundle args = getArguments();
         mJustFolders = (args != null) && args.getBoolean(ARG_JUST_FOLDERS, false);
@@ -573,7 +573,7 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
         /**
          * Selected items in list when action mode is closed by drawer
          */
-        private SparseBooleanArray mSelectionWhenActionModeClosedByDrawer = null;
+        private HashSet<OCFile> mSelectionWhenActionModeClosedByDrawer = new HashSet<>();
 
         @Override
         public void onDrawerSlide(View drawerView, float slideOffset) {
@@ -593,18 +593,26 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
          */
         @Override
         public void onDrawerClosed(View drawerView) {
-            if (mSelectionWhenActionModeClosedByDrawer != null && mActionModeClosedByDrawer) {
-                for (int i = 0; i < mSelectionWhenActionModeClosedByDrawer.size(); i++) {
-                    if (mSelectionWhenActionModeClosedByDrawer.valueAt(i)) {
+            if (mActionModeClosedByDrawer) {
+                FragmentActivity actionBarActivity = getActivity();
+                actionBarActivity.startActionMode(mMultiChoiceModeListener);
+
+                ((OCFileListAdapter) getRecyclerView().getAdapter())
+                        .setCheckedItem(mSelectionWhenActionModeClosedByDrawer);
+
+                mActiveActionMode.invalidate();
+                getAdapter().notifyDataSetChanged();
+
+//                for (int i = 0; i < mSelectionWhenActionModeClosedByDrawer.size(); i++) {
+//                    if (mSelectionWhenActionModeClosedByDrawer.valueAt(i)) {
                         // TODO recycler
 //                        getRecyclerView().setItemChecked(
 //                                mSelectionWhenActionModeClosedByDrawer.keyAt(i),
 //                                true
 //                        );
-                    }
+//                    }
                 }
-            }
-            mSelectionWhenActionModeClosedByDrawer = null;
+            mSelectionWhenActionModeClosedByDrawer.clear();
         }
 
         /**
@@ -617,7 +625,7 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
         public void onDrawerStateChanged(int newState) {
             if (DrawerLayout.STATE_DRAGGING == newState && mActiveActionMode != null) {
                 // TODO recycler
-//                mSelectionWhenActionModeClosedByDrawer = getRecyclerView().getCheckedItemPositions().clone();
+                mSelectionWhenActionModeClosedByDrawer.addAll(((OCFileListAdapter) getRecyclerView().getAdapter()).getCheckedItems());
                 mActiveActionMode.finish();
                 mActionModeClosedByDrawer = true;
             }
@@ -629,10 +637,7 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
          */
         @Override
         public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
-            // TODO recycler
-//            getAdapter().notifyDataSetChanged();
-//            getRecyclerView().invalidateViews();
-            mode.invalidate();
+            // nothing to do here
         }
 
         /**
@@ -653,11 +658,8 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
             // hide FAB in multi selection mode
             setFabEnabled(false);
 
-
-            // todo recycler
             mAdapter.setMultiSelect(true);
             return true;
-//            return false;
         }
 
         /**
@@ -713,12 +715,14 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
 
         public void storeStateIn(Bundle outState) {
             outState.putBoolean(KEY_ACTION_MODE_CLOSED_BY_DRAWER, mActionModeClosedByDrawer);
-            if (mSelectionWhenActionModeClosedByDrawer != null) {
-                SparseBooleanArrayParcelable sbap = new SparseBooleanArrayParcelable(
-                        mSelectionWhenActionModeClosedByDrawer
-                );
-                outState.putParcelable(KEY_SELECTION_WHEN_CLOSED_BY_DRAWER, sbap);
-            }
+
+            // todo recycler
+//            if (mSelectionWhenActionModeClosedByDrawer != null) {
+//                SparseBooleanArrayParcelable sbap = new SparseBooleanArrayParcelable(
+//                        mSelectionWhenActionModeClosedByDrawer
+//                );
+//                outState.putParcelable(KEY_SELECTION_WHEN_CLOSED_BY_DRAWER, sbap);
+//            }
         }
 
         public void loadStateFrom(Bundle savedInstanceState) {
@@ -730,7 +734,8 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
                     KEY_SELECTION_WHEN_CLOSED_BY_DRAWER
             );
             if (sbap != null) {
-                mSelectionWhenActionModeClosedByDrawer = sbap.getSparseBooleanArray();
+                // todo recycler
+//                mSelectionWhenActionModeClosedByDrawer = sbap.getSparseBooleanArray();
             }
         }
     }
@@ -739,11 +744,12 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
      * Init listener that will handle interactions in multiple selection mode.
      */
     private void setChoiceModeAsMultipleModal(Bundle savedInstanceState) {
-        setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        // todo recycler
+//        setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         if (savedInstanceState != null) {
             mMultiChoiceModeListener.loadStateFrom(savedInstanceState);
         }
-        setMultiChoiceModeListener(mMultiChoiceModeListener);
+//        setMultiChoiceModeListener(mMultiChoiceModeListener);
         ((FileActivity) getActivity()).addDrawerListener(mMultiChoiceModeListener);
     }
 
@@ -1716,10 +1722,18 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
      * @param select <code>true</code> to select all, <code>false</code> to deselect all
      */
     public void selectAllFiles(boolean select) {
-        // TODO recycler view
-        RecyclerView listView = getRecyclerView();
-//        for (int position = 0; position < listView.getCount(); position++) {
-//            listView.setItemChecked(position, select);
-//        }
+        OCFileListAdapter ocFileListAdapter = (OCFileListAdapter) getRecyclerView().getAdapter();
+
+        if (select) {
+            ocFileListAdapter.addAllFilesToCheckedFiles();
+        } else {
+            ocFileListAdapter.removeAllFilesFromCheckedFiles();
+        }
+
+        for (int i = 0; i < mAdapter.getItemCount(); i++) {
+            mAdapter.notifyItemChanged(i);
+        }
+
+        mActiveActionMode.invalidate();        
     }
 }
