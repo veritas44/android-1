@@ -318,14 +318,6 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
             mFile = savedInstanceState.getParcelable(KEY_FILE);
         }
 
-
-        // todo recycler
-//        if (mJustFolders) {
-//            setFooterEnabled(false);
-//        } else {
-//            setFooterEnabled(true);
-//        }
-
         Bundle args = getArguments();
         mJustFolders = (args != null) && args.getBoolean(ARG_JUST_FOLDERS, false);
         boolean hideItemOptions = (args != null) && args.getBoolean(ARG_HIDE_ITEM_OPTIONS, false);
@@ -527,7 +519,8 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
 
     @Override
     public void finishedFiltering() {
-        // TODO recycler        
+        // TODO recycler
+        
         // updateFooter();
     }
 
@@ -912,9 +905,9 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
             mActiveActionMode.invalidate();
             mAdapter.notifyItemChanged(getAdapter().getItemPosition(file));
         } else {
-            // todo recycler 
-            int position = 0;
             if (file != null) {
+                int position = mAdapter.getItemPosition(file);
+                
                 if (file.isFolder()) {
                     if (file.isEncrypted()) {
                         // check if API >= 19
@@ -1221,8 +1214,7 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
 
                 mAdapter.swapDirectory(directory, storageManager, onlyOnDevice);
                 if (mFile == null || !mFile.equals(directory)) {
-                    // TODO recycler view
-//                    getRecyclerView().setSelection(0);
+                    getRecyclerView().scrollToPosition(0);
                 }
                 mFile = directory;
 
@@ -1234,7 +1226,6 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
 
     private void updateLayout() {
         if (!mJustFolders) {
-//            updateFooter();
             // decide grid vs list view
             OwnCloudVersion version = AccountUtils.getServerVersion(
                     ((FileActivity) mContainerActivity).getAccount());
@@ -1302,7 +1293,7 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
 
         RecyclerView.LayoutManager layoutManager;
         if (grid) {
-            layoutManager = new GridLayoutManager(getContext(), 3);
+            layoutManager = new GridLayoutManager(getContext(), getColumnSize());
             ((GridLayoutManager) layoutManager).setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
