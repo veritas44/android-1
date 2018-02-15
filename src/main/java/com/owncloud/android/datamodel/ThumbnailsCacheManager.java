@@ -528,54 +528,61 @@ public class ThumbnailsCacheManager {
                     }
 
                 } else {
-                    // Download thumbnail from server
-                    OwnCloudVersion serverOCVersion = AccountUtils.getServerVersion(mAccount);
-                    if (mClient != null && serverOCVersion != null) {
-                        if (serverOCVersion.supportsRemoteThumbnails()) {
-                            getMethod = null;
-                            try {
-                                // thumbnail
-                                String uri = mClient.getBaseUri() + "/index.php/apps/files/api/v1/thumbnail/" +
-                                        pxW + "/" + pxH + Uri.encode(file.getRemotePath(), "/");
-                                Log_OC.d(TAG, "generate thumbnail: " + file.getFileName() +
-                                        " URI: " + uri);
-                                getMethod = new GetMethod(uri);
-                                getMethod.setRequestHeader("Cookie",
-                                        "nc_sameSiteCookielax=true;nc_sameSiteCookiestrict=true");
+                    // check if resized version is available
+                    String resizedImageKey = PREFIX_RESIZED_IMAGE + String.valueOf(file.getRemoteId());
+                    Bitmap resizedImage = getBitmapFromDiskCache(resizedImageKey);
 
-                                getMethod.setRequestHeader(RemoteOperation.OCS_API_HEADER,
-                                        RemoteOperation.OCS_API_HEADER_VALUE);
+                    if (resizedImage != null) {
+                        thumbnail = ThumbnailUtils.extractThumbnail(resizedImage, pxW, pxH);
+                    } else {
+                        // Download thumbnail from server
+                        OwnCloudVersion serverOCVersion = AccountUtils.getServerVersion(mAccount);
+                        if (mClient != null && serverOCVersion != null) {
+                            if (serverOCVersion.supportsRemoteThumbnails()) {
+                                getMethod = null;
+                                try {
+                                    // thumbnail
+                                    String uri = mClient.getBaseUri() + "/index.php/apps/files/api/v1/thumbnail/" +
+                                            pxW + "/" + pxH + Uri.encode(file.getRemotePath(), "/");
+                                    Log_OC.d(TAG, "generate thumbnail: " + file.getFileName() +
+                                            " URI: " + uri);
+                                    getMethod = new GetMethod(uri);
+                                    getMethod.setRequestHeader("Cookie",
+                                            "nc_sameSiteCookielax=true;nc_sameSiteCookiestrict=true");
 
-                                int status = mClient.executeMethod(getMethod);
-                                if (status == HttpStatus.SC_OK) {
-                                    InputStream inputStream = getMethod.getResponseBodyAsStream();
-                                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                                    thumbnail = ThumbnailUtils.extractThumbnail(bitmap, pxW, pxH);
-                                } else {
-                                    mClient.exhaustResponse(getMethod.getResponseBodyAsStream());
+                                    getMethod.setRequestHeader(RemoteOperation.OCS_API_HEADER,
+                                            RemoteOperation.OCS_API_HEADER_VALUE);
+
+                                    int status = mClient.executeMethod(getMethod);
+                                    if (status == HttpStatus.SC_OK) {
+                                        InputStream inputStream = getMethod.getResponseBodyAsStream();
+                                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                                        thumbnail = ThumbnailUtils.extractThumbnail(bitmap, pxW, pxH);
+                                    } else {
+                                        mClient.exhaustResponse(getMethod.getResponseBodyAsStream());
+                                    }
+
+                                    // Handle PNG
+                                    if (file.getMimetype().equalsIgnoreCase(PNG_MIMETYPE)) {
+                                        thumbnail = handlePNG(thumbnail, pxW, pxH);
+                                    }
+                                } catch (Exception e) {
+                                    Log_OC.d(TAG, e.getMessage(), e);
+                                } finally {
+                                    if (getMethod != null) {
+                                        getMethod.releaseConnection();
+                                    }
                                 }
-
-                                // Handle PNG
-                                if (file.getMimetype().equalsIgnoreCase(PNG_MIMETYPE)) {
-                                    thumbnail = handlePNG(thumbnail, pxW, pxH);
-                                }
-
-                                // Add thumbnail to cache
-                                if (thumbnail != null) {
-                                    Log_OC.d(TAG, "add thumbnail to cache: " + file.getFileName());
-                                    addBitmapToCache(imageKey, thumbnail);
-                                }
-
-                            } catch (Exception e) {
-                                Log_OC.d(TAG, e.getMessage(), e);
-                            } finally {
-                                if (getMethod != null) {
-                                    getMethod.releaseConnection();
-                                }
+                            } else {
+                                Log_OC.d(TAG, "Server too old");
                             }
-                        } else {
-                            Log_OC.d(TAG, "Server too old");
                         }
+                    }
+
+                    // Add thumbnail to cache
+                    if (thumbnail != null) {
+                        Log_OC.d(TAG, "add thumbnail to cache: " + file.getFileName());
+                        addBitmapToCache(imageKey, thumbnail);
                     }
                 }
             }
