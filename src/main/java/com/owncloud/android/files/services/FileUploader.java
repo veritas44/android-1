@@ -535,8 +535,6 @@ public class FileUploader extends Service
         }
         OwnCloudVersion ocv = AccountUtils.getServerVersion(account);
 
-        boolean chunked = ocv.isChunkedUploadSupported();
-
         boolean onWifiOnly = intent.getBooleanExtra(KEY_WHILE_ON_WIFI_ONLY, false);
         boolean whileChargingOnly = intent.getBooleanExtra(KEY_WHILE_CHARGING_ONLY, false);
 
@@ -625,7 +623,7 @@ public class FileUploader extends Service
                             account,
                             files[i],
                             ocUpload,
-                            chunked,
+                            true,
                             forceOverwrite,
                             localAction,
                             this,
@@ -684,7 +682,7 @@ public class FileUploader extends Service
                     account,
                     null,
                     upload,
-                    chunked,
+                    true,
                     upload.isForceOverwrite(),  // TODO should be read from DB?
                     upload.getLocalAction(),    // TODO should be read from DB?
                     this,
