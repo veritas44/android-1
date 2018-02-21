@@ -1224,10 +1224,8 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
         if (!mJustFolders) {
             updateFooter();
             // decide grid vs list view
-            OwnCloudVersion version = AccountUtils.getServerVersion(
-                    ((FileActivity) mContainerActivity).getAccount());
-            if (version != null && version.supportsRemoteThumbnails() &&
-                    isGridViewPreferred(mFile)) {
+            OwnCloudVersion version = AccountUtils.getServerVersion(((FileActivity) mContainerActivity).getAccount());
+            if (version.supportsRemoteThumbnails() && isGridViewPreferred(mFile)) {
                 switchToGridView();
             } else {
                 switchToListView();
