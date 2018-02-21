@@ -186,6 +186,7 @@ public class FileStorageUtils {
         if (file.isFolder()) {
             file.setEncrypted(remote.getIsEncrypted());
         }
+        file.setMountType(remote.getMountType());
         return file;
     }
 
