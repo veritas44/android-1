@@ -1088,6 +1088,7 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
             case R.id.action_move: {
                 Intent action = new Intent(getActivity(), FolderPickerActivity.class);
                 action.putParcelableArrayListExtra(FolderPickerActivity.EXTRA_FILES, checkedFiles);
+                action.putExtra(FolderPickerActivity.EXTRA_CURRENT_FOLDER, mFile);
                 action.putExtra(FolderPickerActivity.EXTRA_ACTION, FolderPickerActivity.MOVE);
                 getActivity().startActivityForResult(action, FileDisplayActivity.REQUEST_CODE__MOVE_FILES);
                 return true;
@@ -1095,6 +1096,7 @@ public class OCFileListFragment extends ExtendedListFragment implements OCFileLi
             case R.id.action_copy: {
                 Intent action = new Intent(getActivity(), FolderPickerActivity.class);
                 action.putParcelableArrayListExtra(FolderPickerActivity.EXTRA_FILES, checkedFiles);
+                action.putExtra(FolderPickerActivity.EXTRA_CURRENT_FOLDER, mFile);
                 action.putExtra(FolderPickerActivity.EXTRA_ACTION, FolderPickerActivity.COPY);
                 getActivity().startActivityForResult(action, FileDisplayActivity.REQUEST_CODE__COPY_FILES);
                 return true;
